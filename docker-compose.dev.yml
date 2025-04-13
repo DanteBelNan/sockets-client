@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  sockets-client-dev:
+    image: node:lts-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - /app/node_modules
+    ports:
+      - "8080:8080"
+    command: sh -c "npm install && npm run serve"
+    env_file: .env
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    restart: unless-stopped
