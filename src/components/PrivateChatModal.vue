@@ -85,7 +85,19 @@
             console.error('Error al enviar el mensaje:', err);
             sendMessageStatus.value = 'Error al enviar el mensaje';
           }
-        socket.value = io('http://localhost:3001/privateChat');
+        
+        socket.value = io('http://localhost:3001/privateChat', {
+          auth: {
+            token: token.value
+          }
+        });
+
+        socket.value.on("connect_error", (error) => {
+          console.error("Error de conexión al socket; ", error.message)
+          if (error.message.includes('Authentication error')) {
+            alert('Sesión expirada. Por favor vuelve a iniciar sesión.');
+          }
+        })
         
         socket.value.on('connect', () => {
           socketId.value = socket.value.id;
@@ -130,7 +142,7 @@
           const messageData = {
             roomId: props.roomId,
             message: newMessage.value,
-            username: localStorage.getItem('username') || 'Usuario'
+            username: localStorage.getItem('username')
           };
           socket.value.emit('chat message', messageData);
           try{

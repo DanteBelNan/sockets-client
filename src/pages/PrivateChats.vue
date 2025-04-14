@@ -62,7 +62,20 @@
       
       // Conectarse al namespace de privateChat
       onMounted(() => {
-        socket.value = io('http://localhost:3001/privateChat');
+        const token = localStorage.getItem('token')
+        
+        socket.value = io('http://localhost:3001/privateChat', {
+          auth: {
+            token: token
+          }
+        });
+
+        socket.value.on("connect_error", (error) => {
+          console.error("Error de conexión al socket; ", error.message)
+          if (error.message.includes('Authentication error')) {
+            alert('Sesión expirada. Por favor vuelve a iniciar sesión.');
+          }
+        })
         
         // Solicitar la lista de salas disponibles al conectarse
         socket.value.on('connect', () => {

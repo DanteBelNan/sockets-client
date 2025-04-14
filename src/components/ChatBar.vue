@@ -39,7 +39,19 @@ export default {
     const messageArea = ref(null); // Referencia al elemento message-area
 
     onMounted(() => {
-      socket.value = io('http://localhost:3001/chat');
+      const token = localStorage.getItem('token')
+      socket.value = io('http://localhost:3001/chat', {
+        auth: {
+          token: token
+        }
+      });
+
+      socket.value.on("connect_error", (error) => {
+        console.error("Error de conexión al socket; ", error.message)
+        if (error.message.includes('Authentication error')) {
+          alert('Sesión expirada. Por favor vuelve a iniciar sesión.');
+        }
+      })
 
       socket.value.on('connect', () => {
         socketId.value = socket.value.id;
@@ -50,6 +62,7 @@ export default {
 
       socket.value.on('chat message', (data) => {
         messages.value.push(data); 
+        console.log(messages.value[0])
         scrollToBottom();
       });
 
@@ -68,9 +81,7 @@ export default {
           "username": localStorage.getItem('username'),
         }
         socket.value.emit('chat message', message_info);
-        newMessage.value = ''; // Limpia el input después de enviar
-        // El scroll se manejará en el evento 'chat message' para asegurar que
-        // el mensaje enviado también provoque el scroll en todos los clientes.
+        newMessage.value = ''; 
       }
     };
 
